@@ -1,0 +1,129 @@
+Terraform compares state vs configuration:
+Old keys ❌ no longer exist → destroy
+New keys ✅ found → create
+Important rule:
+Changing for_each keys = changing resource identity → destroy & recreate.
+Note:
+This happens even if everything else (AMI, type, SG, keypair) is unchanged.
+tags.Name change alone would NOT cause deletion — but for_each key change does.
+How to avoid deletion (if needed):
+Keep for_each keys stable.
+Change only tags.Name if you want a different visible EC2 name.
+This is expected Terraform behavior, not an error.
+
+if I have to make new instance, dont change the key
+as it will destroy the created instance and then
+create a new one
+below is the syntax for more instances :
+
+for_each = tomap({
+  micro-instance1  = "t3.micro"
+  small-instance1  = "t3.small"
+  micro-instance2  = "t3.micro"
+  small-instance2  = "t3.small"
+})
+
+
+terraform state management with aws:
+
+terrafrom -- file.tf -- apply -- read the file -- providers -- apply,deploy,destroy on aws 
+
+so we saw how terrafrom uses tf file to do the change on aws
+
+tf should also know what is going on in aws
+ex- instance is running
+tf has to stop it for that tf should know that instance is running
+
+tfstate - file (maintains log, and everything is maintained on tf state file)
+
+
+State file is maintaining the AWS.
+scenario -- deleted the state file by mistake.
+IMport and delete we cannot do. 
+This a genuine file, .tfstate is an important file
+
+problem 1
+tfstate file we cant commit to github as it can be modified or 
+deleted and backtracking will be difficult.
+
+problem 2
+state conflict:
+
+two people are there.
+
+person 1 : made a website and deployed it in aws,  the state file
+is with person 1, .tf(infra file), .tfstate(this infra state is managed in this file)
+--dig command (terraform gives details)
+so count == 2, and two servers are needed.
+so everything is working fine
+
+person 2 - works with person 1 with same infra 
+and suggests some changes like inceasing the server to 3
+he used count == 3 in his .tf file and .tfstate also has 3 servers
+
+person 1 has 2 count 
+person 2 has 3 count 
+
+how will I know that person 2 has changed the servers -- this is 
+known as state conflict.
+
+These are the 2 problems in TERRAFORM state management.
+
+
+-- make a common .tfstate file
+we cannoty commit this.
+
+so place it in remote secure location known as remote backend.
+
+aws tells to store this remote .tftste file in S3.
+if we have to change this state file and then use it through the 
+S3 bucket.
+
+We have to do the state file locking using DYNAMO DB -- database, no sql, schema less 
+key value based system.
+
+if person 2 changes the state file in s3, s3 bucket will trigger 
+the dynamo db table and a lock id will be generated.
+till the person 2 is accesing the state file, lock id will be 
+generated.
+
+rule-- to acces state file in s3, the lock id should not be 
+generated, then only you can access the state file.
+
+till the lock id is generated, no one can acess the state file apart
+from the person using it at that time.
+
+This is called the LOCK & RELEASE Mechanism.
+
+If anyone is accessing the state file, lock id will be there,
+till the lock id is generated, no one can access that file.
+
+so without commiting the file on github, and using this remote backends,
+with s3 and dynamao db with lock and release mechanism.
+
+so this state conflict is getting managed with this mechanism.
+
+
+
+
+
+
+
+asked for 5 + yrs candidate 
+
+solution : make a common state file
+keep it as a secure location -- called as remote backend
+
+store it in AWS s3 -- recommended by AWS
+
+if we have to change the state, for more than one people
+what is the fayeda?
+
+then we have to do STATE FILE LOCKING 
+using DYNAMO DB - table, no sql, database, key value based system.
+
+If (.tfstate) is changed by someone, then there will be a trigger
+sent to the DYNAMO DB table, a lock id will be generated,
+and that lock id will be there till when the .tfstate file is getting 
+accessed or changed, so that's how we know that how and when the 
+.tfstate file is being changed 

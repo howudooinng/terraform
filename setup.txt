@@ -1,0 +1,112 @@
+THIS IS A COMPLETE GUIDE TO SETUP TERRAFORM ON YOUR LOCAL AS WELL AS ON AN EC2 Instance with AWS
+Create a Server where we will install terraform.
+
+terra-server -- server for terraform 
+
+connect it to the terminal using ssh -- aws instance.
+
+Install Terraform:
+choose your OS and install accordingly
+
+On AWS instance I have ubuntu linux so install terraform on linux commands I will use:
+
+
+updating instance:
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+
+Install HashiCorp's GPG key.
+
+$ wget -O- https://apt.releases.hashicorp.com/gpg | \
+gpg --dearmor | \
+sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+
+Verify the GPG key's fingerprint.
+
+$ gpg --no-default-keyring \
+--keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+--fingerprint
+
+Add the official HashiCorp repository to your system.
+
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+Update apt to download the package information from the HashiCorp repository.
+
+$ sudo apt update
+
+Install Terraform from the new repository.
+
+$ sudo apt-get install terraform
+
+Whole process of installing terraform on ec2 linux instance.
+
+Similarly if you want to install terraform on your local,
+choose the corresponding os and follow the install process as mentioned 
+on Terraform official website.
+
+So when you use VS code editor to code the Iac tool terraform with aws, it connects 
+with your terraform present on your local machine which you have already installed 
+using terraform official website documentation.
+
+use command - "which terraform" to confirm the version on the vscode terminal as well as the local terminal
+it will match and thus it confirms that both are same.
+
+
+HCL - Terraform language
+Block Parameters {
+    Arguments
+}
+
+Terraform has a local provider by default.
+
+Workflow of Terraform : {
+
+    terraform init     - creates an environment 
+    terraform validate - check the configuration
+    terraform plan     - it shows the dry run for the script which needs to be run.
+    terraform apply    - applies the changes and then it creates the infra 
+    arguments vs attributes
+    terraform destroy  - destroys the infrastructure 
+
+    We can use -auto-approve suffix after the terraform apply/destroy
+}
+
+
+You can see providers on terraform website.
+
+We need to get the provider of a cloud service provider for which we are creating 
+the infrastructure for it.
+
+To install a provider, we have to make a provider.tf file.
+
+Terraform block does not have Parameters, only arguments.
+
+Then do terraform init to intialise the provider for aws
+
+Similarly for all the cloud provider, we can intall the respective provider from the website 
+
+
+I have the provider now, we need awscli to connect to that account.
+
+This the awscli install command:
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws cli configure
+
+Access Key Id : then we have to go to the IAM,
+create user - terra-admin -- give permissions - select the permissions and give it.
+Create access key -- choose use case - cli here in this case.
+Put the same access key id and secret access key
+
+To configure the Provider, this will create your infra in this region.
+
+The use 
+Provider "aws" {
+    region = "us-east-2"
+}
+
+
+
